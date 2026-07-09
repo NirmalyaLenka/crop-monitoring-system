@@ -1,0 +1,78 @@
+```txt
+# ============================================
+# Smart Greenhouse Monitoring System
+# Python Dependencies
+# ============================================
+
+# Web Framework
+Flask>=3.0.0
+Werkzeug>=3.0.0
+
+# MQTT Communication
+paho-mqtt>=2.1.0
+
+# Database
+SQLAlchemy>=2.0.30
+
+# Raspberry Pi Camera
+picamera2>=0.3.22
+
+# Computer Vision
+opencv-python>=4.10.0.84
+numpy>=2.0.0
+
+# Sensor Libraries
+adafruit-blinka>=8.45.0
+adafruit-circuitpython-sht31d>=2.3.24
+adafruit-circuitpython-bh1750>=1.1.24
+board>=1.0
+busio>=1.0
+
+# GPIO Control
+gpiozero>=2.0.1
+lgpio>=0.2.2.0
+
+# Data Handling
+pandas>=2.2.2
+
+# Configuration
+PyYAML>=6.0.2
+
+# Scheduling
+APScheduler>=3.10.4
+
+# HTTP Requests
+requests>=2.32.3
+
+# Environment Variables
+python-dotenv>=1.0.1
+
+# Logging
+colorlog>=6.8.2
+
+# Image Processing
+Pillow>=10.4.0
+
+# API Support
+Flask-RESTful>=0.3.10
+Flask-Cors>=5.0.0
+
+# Dashboard Charts
+plotly>=5.23.0
+
+# System Monitoring
+psutil>=6.0.0
+
+# Date and Time
+python-dateutil>=2.9.0
+
+# QR Code Generation (Optional)
+qrcode>=7.4.2
+
+# Testing
+pytest>=8.3.2
+pytest-cov>=5.0.0
+
+# Production Server
+gunicorn>=22.0.0
+```
