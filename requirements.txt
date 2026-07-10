@@ -1,0 +1,6 @@
+flask
+adafruit-blinka
+adafruit-circuitpython-dht
+adafruit-circuitpython-mcp3xxx
+smbus2
+twilio
