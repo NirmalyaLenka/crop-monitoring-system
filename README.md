@@ -1,267 +1,113 @@
-# Smart Greenhouse Monitoring and Automation System
+# Greenhouse Monitoring System
 
-A Raspberry Pi–based IoT greenhouse system designed to monitor and automatically control environmental conditions for different crops. The system collects data from multiple sensors, streams live video from the greenhouse, controls actuators such as irrigation pumps and fans, and provides a web dashboard for remote monitoring and management.
+A beginner-friendly, Raspberry Pi based greenhouse monitoring system with sensors, a camera, data storage, a live wireless dashboard, and email/SMS alerts. It ships with ready-to-run monitoring profiles for five different plants: mushroom, tomato, citrus, pepper, and Mandevilla.
 
-The project is designed to be modular, scalable, and easy to customize for different greenhouse sizes and crop requirements.
+No prior experience with Linux, electronics, or Python is required, though this is a bigger project than a single sensor script, so budget more time than a simple blink or single-sensor project.
 
----
+Read `PRECAUTIONS.md` before building or running this system. It covers electrical safety, credential safety, and the real limitations of hobby sensors.
 
-## Features
+## What This System Does
 
-### Environmental Monitoring
+1. Reads temperature, humidity, light level, soil/substrate moisture, and air quality from a set of sensors, on a repeating schedule.
+2. Logs every reading to a CSV file you can open in any spreadsheet program.
+3. Takes a timestamped camera photo on a repeating schedule, and automatically deletes old photos after a configurable number of days.
+4. Compares every reading against ideal ranges for whichever plant you are monitoring, and sends you an email (and optionally an SMS text) if something is out of range, with a cooldown so you are not flooded with repeat alerts.
+5. Runs a small live dashboard web page, viewable from your phone or laptop over your home Wi-Fi, showing the current status and latest photo for every plant you are monitoring.
 
-* Temperature monitoring
-* Humidity monitoring
-* Soil moisture monitoring
-* Ambient light monitoring
-* Water tank level monitoring
-* Real-time sensor updates
+## How the Project Is Organized
 
-### Automation
-
-* Automatic irrigation
-* Automatic fan control
-* Automatic humidifier control
-* Automatic grow light control
-* Manual override mode
-* Automatic crop profile switching
-
-### Camera System
-
-* Live video streaming
-* Snapshot capture
-* Timelapse recording
-* Remote greenhouse inspection
-
-### Dashboard
-
-* Live sensor readings
-* Device status
-* Crop selection
-* Camera feed
-* Historical graphs
-* Manual device controls
-* System logs
-
-### Data Management
-
-* SQLite database
-* CSV data export
-* Historical sensor logs
-* Event logging
-* Backup support
-
-### Connectivity
-
-* MQTT communication
-* REST API
-* Local network access
-* Remote monitoring support
-
----
-
-# Supported Crops
-
-The system includes predefined environmental profiles for multiple crops.
-
-| Crop            | Temperature | Humidity | Soil Moisture |
-| --------------- | ----------- | -------- | ------------- |
-| Tomato          | 21–27°C     | 60–70%   | 60–80%        |
-| Capsicum        | 20–26°C     | 65–80%   | 60–75%        |
-| Spinach         | 15–24°C     | 50–70%   | 70–80%        |
-| Grapes          | 22–30°C     | 50–70%   | 40–60%        |
-| Oyster Mushroom | 15–21°C     | 85–95%   | 80–90%        |
-
-Crop profiles can be modified or new crops can be added through the configuration file without changing the source code.
-
----
-
-# Hardware Used
-
-## Main Controller
-
-* Raspberry Pi 4
-
-## Sensors
-
-* SHT31 Temperature & Humidity Sensor
-* BH1750 Light Sensor
-* Capacitive Soil Moisture Sensor
-* Float Switch (Water Tank Level)
-
-## Actuators
-
-* 4-Channel Relay Module
-* 12V Brushless Cooling Fan
-* 12V Water Pump
-* Ultrasonic Humidifier
-* Full Spectrum LED Grow Light
-
-## Camera
-
-* Raspberry Pi Camera Module 3
-
----
-
-# Software Stack
-
-* Python 3
-* Flask
-* SQLite
-* MQTT
-* OpenCV
-* Picamera2
-* Bootstrap 5
-* HTML
-* CSS
-* JavaScript
-* Chart.js
-
----
-
-# Project Structure
-
-```text
-Smart-Greenhouse-System/
-│
-├── app.py
-├── requirements.txt
-├── install.sh
-├── greenhouse.service
-├── README.md
-│
+```
+greenhouse-monitoring-system/
 ├── config/
-├── database/
-├── docs/
-├── logs/
-├── scripts/
-│
-├── src/
-│   ├── actuators/
-│   ├── api/
-│   ├── camera/
-│   ├── control/
-│   ├── mqtt/
-│   ├── sensors/
-│   └── utils/
-│
-├── static/
-│   ├── css/
-│   ├── images/
-│   └── js/
-│
-├── templates/
-└── tests/
+│   └── settings_example.py   Copy to settings.py and fill in your own values
+├── core/
+│   ├── sensors.py            Reads the DHT22, BH1750, soil/substrate probe, and MQ135
+│   ├── camera_capture.py     Takes and stores timestamped photos
+│   ├── alerts.py             Sends email and optional SMS alerts, with cooldown
+│   ├── data_logger.py        Appends sensor readings to a CSV file
+│   ├── engine.py             The shared monitoring loop every plant script uses
+│   └── dashboard.py          The live web dashboard, run separately
+├── plants/
+│   ├── mushroom_monitor.py
+│   ├── tomato_monitor.py
+│   ├── citrus_monitor.py
+│   ├── pepper_monitor.py
+│   └── mandevilla_monitor.py
+└── docs/
+    ├── hardware-setup.md     Full wiring and calibration instructions
+    ├── plant-profiles.md     Research notes, values, and precautions per plant
+    ├── alerts-setup.md       Gmail app password and Twilio SMS setup
+    └── troubleshooting.md    Fixes for common problems
 ```
 
----
+Every plant script in `plants/` is short on purpose: it only defines that plant's ideal ranges and a couple of notes, then hands off to the shared logic in `core/engine.py`. This means all five plant scripts behave identically in terms of logging, photos, alerts, and the dashboard; only the thresholds differ.
 
-# System Architecture
+## Quick Start
 
-```text
-                     Raspberry Pi
+1. Set up your Pi, wire the sensors and camera, and enable I2C and SPI following `docs/hardware-setup.md` in full.
+2. Install the required software:
 
-        +---------------------------------------+
-        |          Flask Web Dashboard          |
-        +---------------------------------------+
-                      |
-        +---------------------------------------+
-        |      Climate Control Application      |
-        +---------------------------------------+
-          |         |         |         |
-          |         |         |         |
-       Sensors   Camera    MQTT     Database
-          |
-   -----------------------------
-   |     |      |       |
- SHT31  BH1750 Soil   Float
-                 Sensor Switch
-          |
-      Decision Engine
-          |
-      Relay Controller
-          |
- -------------------------------
- |      |      |       |
- Fan   Pump Humidifier Lights
+```
+sudo apt update
+sudo apt install -y python3-picamera2 i2c-tools libgpiod2
+pip3 install -r requirements.txt --break-system-packages
 ```
 
----
+3. Copy the settings template and fill in your details:
 
-# Installation
-
-Clone the repository.
-
-```bash
-git clone https://github.com/yourusername/Smart-Greenhouse-System.git
+```
+cp config/settings_example.py config/settings.py
 ```
 
-Open the project directory.
+Follow `docs/alerts-setup.md` to fill in your email (and optional SMS) details in `config/settings.py`.
 
-```bash
-cd Smart-Greenhouse-System
+4. Calibrate your soil/substrate moisture sensor and your air quality baseline, following the steps in `docs/hardware-setup.md`.
+5. Run the monitor script for whichever plant you are growing, from the repository's root folder:
+
+```
+python3 plants/tomato_monitor.py
 ```
 
-Install the required packages.
+6. In a separate terminal, run the live dashboard:
 
-```bash
-pip install -r requirements.txt
+```
+python3 core/dashboard.py
 ```
 
-Run the application.
+7. From your phone or laptop, on the same Wi-Fi network, open a browser to `http://<your-pi-ip-address>:5000`. Find your Pi's IP address by running `hostname -I` on the Pi itself.
 
-```bash
-python app.py
-```
+## Ideal Ranges at a Glance
 
----
+These are simplified single day/night bands for quick reference. Full reasoning, sources, and precautions for each plant are in `docs/plant-profiles.md`, which you should read before relying on any of these values.
 
-# Crop Automation Logic
+| Plant | Temperature | Humidity | Soil/substrate moisture | Light |
+|---|---|---|---|---|
+| Mushroom | 15 to 21 C | 85 to 95% | 70 to 95% | 200 to 1000 lux |
+| Tomato | 15 to 27 C | 60 to 70% | 60 to 80% | 10,000 to 130,000 lux |
+| Citrus | 10 to 29 C | 50 to 60% | 35 to 65% | 8,000 to 130,000 lux |
+| Pepper | 15 to 27 C | 50 to 70% | 55 to 75% | 10,000 to 130,000 lux |
+| Mandevilla | 15 to 32 C | 50 to 60% | 45 to 70% | 8,000 to 130,000 lux |
 
-The automation engine continuously compares live sensor values with the selected crop profile.
+Air quality is not included in this table since the MQ135 needs to be calibrated to your own environment's fresh-air baseline rather than compared against a fixed universal number; see `docs/hardware-setup.md`.
 
-If:
+## Monitoring More Than One Plant at Once
 
-* Temperature exceeds the maximum limit, the cooling fan is activated.
-* Humidity drops below the minimum value, the humidifier starts.
-* Soil moisture becomes too low, irrigation begins.
-* Light intensity falls below the configured threshold, the grow lights turn on.
+You can run more than one plant monitor script at the same time (for example, in separate terminal sessions, or using `screen`/`tmux`), as long as each one is monitoring a genuinely separate set of sensors and its own camera setup. The shared dashboard will automatically show every plant currently being monitored, since each plant script writes its own separate status file.
 
-Each device automatically switches off when the desired conditions are restored.
+Running two scripts that try to use the exact same physical sensor or camera at the same time will cause conflicts; this project assumes one full sensor and camera set per plant being actively monitored.
 
----
+## Precautions
 
-# Future Improvements
+See `PRECAUTIONS.md` for the full list, but in short:
 
-* AI-based plant disease detection
-* Machine learning for crop prediction
-* Weather forecast integration
-* Mobile application
-* Voice assistant support
-* ESP32 wireless sensor nodes
-* Solar power monitoring
-* Power consumption analytics
-* Multi-greenhouse support
-* Cloud synchronization
+- Keep electronics away from water spray and high humidity, use a sealed enclosure where needed.
+- Never commit `config/settings.py` (it holds your real credentials); only `config/settings_example.py` should be committed.
+- Treat every sensor reading as a helpful estimate from a low-cost hobby sensor, not a certified, laboratory-accurate measurement.
+- This system is for hobby, educational, and small personal greenhouse use, not a substitute for a certified agricultural monitoring system or for your own regular in-person checks on your plants.
 
----
+## License
 
-# Contributing
+This project is licensed under the MIT License. See the `LICENSE` file for details.
 
-Contributions are welcome. If you would like to improve the project, feel free to fork the repository, create a new branch, and submit a pull request.
-
----
-
-# License
-
-This project is licensed under the MIT License.
-
----
-
-# Author
-
-**Nirmalya Lenka**
-
-Electrical and Computer Engineering Student
-
-This project was developed as a practical IoT solution for greenhouse automation using Raspberry Pi, environmental sensors, and intelligent climate control.
+## Please visit the link for ease to find the file and implementation. 
+ link:
