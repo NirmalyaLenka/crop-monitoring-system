@@ -265,3 +265,4 @@ This project is licensed under the MIT License.
 Electrical and Computer Engineering Student
 
 This project was developed as a practical IoT solution for greenhouse automation using Raspberry Pi, environmental sensors, and intelligent climate control.
+## this is just a trial version please visite the main file to see the project files.
