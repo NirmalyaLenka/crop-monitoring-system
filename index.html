@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raspberry Pi Project Log — Shubham</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --board:        #0f2019;
+    --board-panel:  #15281f;
+    --board-panel-2:#193024;
+    --solder:       #35503f;
+    --solder-dim:    #24392d;
+    --silk:         #e9ede4;
+    --silk-dim:     #a9bcae;
+    --copper:       #c9814c;
+    --copper-bright:#e6a165;
+    --copper-dim:   #8a5c3a;
+    --amber:        #d3a94f;
+    --danger:       #c26456;
+    --radius-s: 3px;
+    --radius-m: 6px;
+    --mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --sans: 'IBM Plex Sans', system-ui, sans-serif;
+    --stencil: 'Big Shoulders Stencil Display', sans-serif;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html{ scroll-behavior:smooth; }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(201,129,76,0.07), transparent 60%),
+      var(--board);
+    color:var(--silk);
+    font-family:var(--sans);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* faint grid, like a soldering mat / graph paper under the copper */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(var(--solder-dim) 1px, transparent 1px),
+      linear-gradient(90deg, var(--solder-dim) 1px, transparent 1px);
+    background-size: 34px 34px;
+    opacity:0.16;
+    pointer-events:none;
+    z-index:0;
+  }
+
+  a{ color:inherit; }
+  ::selection{ background:var(--copper); color:#1a1006; }
+
+  a:focus-visible, summary:focus-visible, button:focus-visible{
+    outline: 2px solid var(--copper-bright);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  .wrap{ position:relative; z-index:1; max-width:1080px; margin:0 auto; padding: 0 28px; }
+
+  /* ---------- HERO ---------- */
+
+  .hero{ padding: 56px 0 40px; }
+
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.14em;
+    color:var(--silk-dim);
+    text-transform:uppercase;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:26px;
+  }
+  .eyebrow .dot{
+    width:7px; height:7px; border-radius:50%;
+    background:var(--copper-bright);
+    box-shadow:0 0 6px 1px rgba(230,161,101,0.7);
+  }
+
+  .pin-rail{ width:100%; height:auto; display:block; margin-bottom:6px; }
+  .pin-rail circle.pin{ fill:var(--solder); }
+  .pin-rail circle.pin.hot{
+    fill:var(--copper-bright);
+    filter:drop-shadow(0 0 3px rgba(230,161,101,0.8));
+  }
+  .pin-rail .shroud{ fill:var(--board-panel); stroke:var(--solder); stroke-width:1.5; }
+  .pin-rail .stripe{ fill:var(--copper-dim); opacity:0.6; }
+
+  @keyframes pinGlow{
+    0%, 100% { filter:drop-shadow(0 0 2px rgba(230,161,101,0.55)); }
+    50% { filter:drop-shadow(0 0 7px rgba(230,161,101,0.95)); }
+  }
+  .pin-rail circle.pin.hot{ animation: pinGlow 3.2s ease-in-out infinite; }
+  .pin-rail circle.pin.hot:nth-of-type(2){ animation-delay:0.6s; }
+  .pin-rail circle.pin.hot:nth-of-type(3){ animation-delay:1.2s; }
+
+  .jumpers{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin: 14px 0 34px;
+  }
+  .jumper{
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:0.02em;
+    text-decoration:none;
+    color:var(--silk);
+    background:var(--board-panel);
+    border:1px solid var(--solder);
+    border-top:2px solid var(--copper-dim);
+    padding:7px 12px;
+    border-radius: var(--radius-s);
+    transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
+  }
+  .jumper:hover{
+    border-color:var(--copper-bright);
+    border-top-color:var(--copper-bright);
+    background:var(--board-panel-2);
+    transform: translateY(-1px);
+  }
+  .jumper b{ color:var(--copper-bright); font-weight:600; }
+
+  h1.title{
+    font-family:var(--stencil);
+    font-weight:700;
+    font-size: clamp(42px, 7vw, 84px);
+    line-height:0.96;
+    letter-spacing:0.01em;
+    margin: 0 0 18px;
+    color:var(--silk);
+  }
+  h1.title em{
+    font-style:normal;
+    color:var(--copper-bright);
+  }
+
+  .lede{
+    max-width:60ch;
+    font-size:16.5px;
+    color:var(--silk-dim);
+    margin:0 0 8px;
+  }
+  .lede strong{ color:var(--silk); font-weight:600; }
+
+  .hero-meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:22px;
+    margin-top:28px;
+    padding-top:20px;
+    border-top:1px dashed var(--solder);
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--silk-dim);
+  }
+  .hero-meta span b{ color:var(--silk); display:block; font-size:13px; margin-bottom:2px; }
+
+  /* ---------- SECTION / DATASHEET CARD ---------- */
+
+  .sheet{
+    position:relative;
+    margin: 54px 0;
+    padding-top: 40px;
+    border-top: 2px solid var(--solder);
+  }
+  .sheet::before{
+    /* via dots along the divider, like a board edge */
+    content:"";
+    position:absolute; top:-2.5px; left:0; right:0; height:5px;
+    background-image: radial-gradient(circle, var(--copper-dim) 1.6px, transparent 1.6px);
+    background-size: 22px 5px;
+    opacity:0.9;
+  }
+
+  .sheet-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:20px;
+    margin-bottom:22px;
+  }
+
+  .sheet-id{
+    font-family:var(--mono);
+    font-size:11.5px;
+    letter-spacing:0.12em;
+    color:var(--copper-bright);
+    text-transform:uppercase;
+    margin-bottom:8px;
+  }
+
+  h2.sheet-title{
+    font-family:var(--stencil);
+    font-size: clamp(30px, 4.4vw, 46px);
+    font-weight:700;
+    margin:0 0 6px;
+    line-height:1;
+  }
+
+  .sheet-tagline{ color:var(--silk-dim); font-size:15px; max-width:52ch; }
+
+  .stamp{
+    font-family:var(--mono);
+    font-size:12px;
+    text-align:right;
+    color:var(--silk-dim);
+    border:1px solid var(--solder);
+    border-radius:var(--radius-m);
+    padding:10px 14px;
+    background:var(--board-panel);
+    min-width:190px;
+  }
+  .stamp div{ display:flex; justify-content:space-between; gap:14px; padding:2px 0; }
+  .stamp div b{ color:var(--silk); font-weight:500; }
+
+  .download{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    margin-top:10px;
+    font-family:var(--mono);
+    font-size:12.5px;
+    text-decoration:none;
+    color:var(--board);
+    background:var(--copper-bright);
+    padding:8px 13px;
+    border-radius:var(--radius-s);
+    font-weight:600;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  .download:hover{ background:#f0b47a; transform:translateY(-1px); }
+  .download::before{
+    content:"↓";
+    font-size:14px;
+  }
+
+  .sheet-body{
+    display:grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 30px;
+    align-items:start;
+  }
+  @media (max-width: 780px){
+    .sheet-body{ grid-template-columns: 1fr; }
+  }
+
+  .panel-label{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--silk-dim);
+    margin: 0 0 10px;
+  }
+
+  /* ---------- FILE TREE ---------- */
+
+  .tree{
+    background:var(--board-panel);
+    border:1px solid var(--solder);
+    border-radius:var(--radius-m);
+    padding: 14px 6px;
+    font-family:var(--mono);
+    font-size:13px;
+  }
+
+  .tree ul{ list-style:none; margin:0; padding-left:20px; }
+  .tree > ul{ padding-left:6px; }
+
+  .tree li{ position:relative; padding: 1px 0; }
+
+  .tree summary{
+    cursor:pointer;
+    list-style:none;
+    padding: 4px 8px;
+    border-radius:3px;
+    color:var(--silk);
+    display:flex;
+    align-items:center;
+    gap:8px;
+    transition: background 0.12s ease;
+  }
+  .tree summary::-webkit-details-marker{ display:none; }
+  .tree summary:hover{ background:var(--solder-dim); }
+  .tree summary::before{
+    content:"▸";
+    color:var(--copper-bright);
+    font-size:10px;
+    transition: transform 0.15s ease;
+    display:inline-block;
+    width:8px;
+  }
+  .tree details[open] > summary::before{ transform:rotate(90deg); }
+
+  .file{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding: 4px 8px 4px 26px;
+    border-radius:3px;
+    color:var(--silk-dim);
+    cursor:pointer;
+    transition: background 0.12s ease, color 0.12s ease;
+    background:none;
+    border:none;
+    font-family:var(--mono);
+    font-size:13px;
+    width:100%;
+    text-align:left;
+  }
+  .file:hover{ background:var(--solder-dim); color:var(--silk); }
+  .file .dot{ color:var(--copper-dim); font-size:9px; }
+  .file:hover .dot{ color:var(--copper-bright); }
+
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:26px;
+    transform:translateX(-50%) translateY(12px);
+    background:var(--copper-bright);
+    color:var(--board);
+    font-family:var(--mono);
+    font-size:12.5px;
+    font-weight:600;
+    padding:9px 16px;
+    border-radius:var(--radius-s);
+    opacity:0;
+    pointer-events:none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index:50;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ---------- SPEC TABLE ---------- */
+
+  table.spec{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13.5px;
+    background:var(--board-panel);
+    border:1px solid var(--solder);
+    border-radius:var(--radius-m);
+    overflow:hidden;
+  }
+  table.spec th{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    text-align:left;
+    color:var(--board);
+    background:var(--copper-bright);
+    padding:9px 12px;
+  }
+  table.spec td{
+    padding:9px 12px;
+    border-top:1px solid var(--solder-dim);
+    color:var(--silk-dim);
+    font-family:var(--mono);
+    font-size:12.5px;
+  }
+  table.spec td:first-child{ color:var(--silk); font-weight:500; }
+  table.spec tr:hover td{ background:var(--solder-dim); }
+
+  .note{
+    margin-top:14px;
+    font-size:12.5px;
+    color:var(--silk-dim);
+    border-left:2px solid var(--copper-dim);
+    padding: 4px 0 4px 12px;
+  }
+
+  .badges{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  .badge{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.04em;
+    padding:4px 9px;
+    border-radius: 20px;
+    border:1px solid var(--solder);
+    color:var(--silk-dim);
+  }
+  .badge.warn{ color:var(--amber); border-color:var(--amber); }
+
+  /* ---------- FOOTER ---------- */
+
+  footer{
+    margin-top:70px;
+    padding: 30px 0 60px;
+    border-top:1px dashed var(--solder);
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--silk-dim);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  footer a{ color:var(--copper-bright); text-decoration:none; }
+  footer a:hover{ text-decoration:underline; }
+
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow"><span class="dot"></span> RASPBERRY PI PROJECT LOG &nbsp;·&nbsp; REV 3 &nbsp;·&nbsp; MAINTAINED BY SHUBHAM</div>
+
+    <svg class="pin-rail" viewBox="0 0 800 74" preserveAspectRatio="none" role="img" aria-label="Raspberry Pi GPIO header, three pins highlighted">
+      <rect class="shroud" x="1" y="1" width="798" height="72" rx="6"></rect>
+      <rect class="stripe" x="1" y="1" width="14" height="72" rx="2"></rect>
+      <!-- 20 columns x 2 rows -->
+      <g id="rail-pins"></g>
+    </svg>
+
+    <div class="jumpers">
+      <a class="jumper" href="#beginner"><b>GPIO4 / 17 / 18 / 27</b> → beginner kit</a>
+      <a class="jumper" href="#camera"><b>CSI</b> → camera rig</a>
+      <a class="jumper" href="#greenhouse"><b>I2C + SPI</b> → greenhouse system</a>
+    </div>
+
+    <h1 class="title">Three builds.<br>One <em>Raspberry Pi.</em></h1>
+
+    <p class="lede">
+      A running log of hardware projects, in the order a beginner would actually build them:
+      <strong>learn the pins</strong>, <strong>add a camera</strong>, then <strong>wire it all into a
+      greenhouse that watches itself.</strong> Every file below is real and ready to run — click a
+      filename to copy its path, or open a tree to browse the project like a folder.
+    </p>
+
+    <div class="hero-meta">
+      <span><b>3</b> repositories</span>
+      <span><b>26</b> files total</span>
+      <span><b>Pi 3 / 4 / 5</b> supported</span>
+      <span><b>Python 3</b>, MIT licensed</span>
+    </div>
+  </header>
+
+  <!-- ================= BEGINNER GUIDE ================= -->
+  <section class="sheet" id="beginner">
+    <div class="sheet-head">
+      <div>
+        <div class="sheet-id">DATASHEET NO. RPI–BEG–01</div>
+        <h2 class="sheet-title">Raspberry Pi for Beginners</h2>
+        <p class="sheet-tagline">Flashing the OS, wiring your first LED, then working up through IR, light, PWM, and gas sensors.</p>
+        <div class="badges">
+          <span class="badge">Beginner</span>
+          <span class="badge">GPIO + MCP3008</span>
+          <span class="badge">8 example scripts</span>
+        </div>
+      </div>
+      <div>
+        <div class="stamp">
+          <div><span>Level</span><b>Beginner</b></div>
+          <div><span>Files</span><b>12</b></div>
+          <div><span>Board</span><b>Any Pi</b></div>
+        </div>
+        <a class="download" href="raspberry-pi-beginner-guide.zip" download>raspberry-pi-beginner-guide.zip</a>
+      </div>
+    </div>
+
+    <div class="sheet-body">
+      <div>
+        <p class="panel-label">File tree</p>
+        <div class="tree">
+          <ul>
+            <li><button class="file" data-path="raspberry-pi-beginner-guide/README.md"><span class="dot">●</span>README.md</button></li>
+            <li><button class="file" data-path="raspberry-pi-beginner-guide/BEGINNER-WALKTHROUGH.md"><span class="dot">●</span>BEGINNER-WALKTHROUGH.md</button></li>
+            <li><button class="file" data-path="raspberry-pi-beginner-guide/LICENSE"><span class="dot">●</span>LICENSE</button></li>
+            <li><button class="file" data-path="raspberry-pi-beginner-guide/.gitignore"><span class="dot">●</span>.gitignore</button></li>
+            <li>
+              <details>
+                <summary>docs/</summary>
+                <ul>
+                  <li><button class="file" data-path="raspberry-pi-beginner-guide/docs/gpio-pinout.md"><span class="dot">●</span>gpio-pinout.md</button></li>
+                  <li><button class="file" data-path="raspberry-pi-beginner-guide/docs/troubleshooting.md"><span class="dot">●</span>troubleshooting.md</button></li>
+                  <li><button class="file" data-path="raspberry-pi-beginner-guide/docs/mq2-sensor-notes.md"><span class="dot">●</span>mq2-sensor-notes.md</button></li>
+                </ul>
+              </details>
+            </li>
+            <li>
+              <details open>
+                <summary>examples/</summary>
+                <ul>
+                  <li><button class="file" data-path="raspberry-pi-beginner-guide/examples/blink.py"><span class="dot">●</span>blink.py</button></li>
+                  <li><button class="file" data-path="raspberry-pi-beginner-guide/examples/pwm_led_fade.py"><span class="dot">●</span>pwm_led_fade.py</button></li>
+                  <li><button class="file" data-path="raspberry-pi-beginner-guide/examples/ir_sensor.py"><span class="dot">●</span>ir_sensor.py</button></li>
+                  <li><button class="file" data-path="raspberry-pi-beginner-guide/examples/ldr_sensor.py"><span class="dot">●</span>ldr_sensor.py</button></li>
+                  <li><button class="file" data-path="raspberry-pi-beginner-guide/examples/ldr_analog_mcp3008.py"><span class="dot">●</span>ldr_analog_mcp3008.py</button></li>
+                  <li><button class="file" data-path="raspberry-pi-beginner-guide/examples/mq2_gas_logger.py"><span class="dot">●</span>mq2_gas_logger.py</button></li>
+                  <li><button class="file" data-path="raspberry-pi-beginner-guide/examples/mq2_gas_analog_mcp3008.py"><span class="dot">●</span>mq2_gas_analog_mcp3008.py</button></li>
+                  <li><button class="file" data-path="raspberry-pi-beginner-guide/examples/mq2_wireless_monitor.py"><span class="dot">●</span>mq2_wireless_monitor.py</button></li>
+                </ul>
+              </details>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div>
+        <p class="panel-label">What each script wires up</p>
+        <table class="spec">
+          <thead><tr><th>Script</th><th>Sensor / part</th><th>Pin</th></tr></thead>
+          <tbody>
+            <tr><td>blink.py</td><td>Single LED</td><td>GPIO17</td></tr>
+            <tr><td>pwm_led_fade.py</td><td>LED, PWM fade</td><td>GPIO18</td></tr>
+            <tr><td>ir_sensor.py</td><td>IR obstacle sensor</td><td>GPIO4</td></tr>
+            <tr><td>ldr_sensor.py</td><td>LDR module (digital)</td><td>GPIO27</td></tr>
+            <tr><td>ldr_analog_mcp3008.py</td><td>LDR (analog)</td><td>MCP3008 CH0</td></tr>
+            <tr><td>mq2_gas_logger.py</td><td>MQ2 gas sensor</td><td>GPIO17</td></tr>
+            <tr><td>mq2_gas_analog_mcp3008.py</td><td>MQ2 (analog)</td><td>MCP3008 CH0</td></tr>
+            <tr><td>mq2_wireless_monitor.py</td><td>MQ2 + web dashboard</td><td>GPIO17 · port 5000</td></tr>
+          </tbody>
+        </table>
+        <p class="note">Start with <code>blink.py</code>, work down the table — each script only changes one idea from the one before it. Full order and reasoning in BEGINNER-WALKTHROUGH.md.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CAMERA GUIDE ================= -->
+  <section class="sheet" id="camera">
+    <div class="sheet-head">
+      <div>
+        <div class="sheet-id">DATASHEET NO. RPI–CAM–02</div>
+        <h2 class="sheet-title">Camera Guide</h2>
+        <p class="sheet-tagline">Wiring, enabling, and testing a camera module across Pi 3, Pi 4, and Pi 5 — including the connector swap on Pi 5.</p>
+        <div class="badges">
+          <span class="badge">Beginner</span>
+          <span class="badge">libcamera / Picamera2</span>
+          <span class="badge warn">Pi 5 uses a different cable</span>
+        </div>
+      </div>
+      <div>
+        <div class="stamp">
+          <div><span>Level</span><b>Beginner</b></div>
+          <div><span>Files</span><b>6</b></div>
+          <div><span>Board</span><b>Pi 3 / 4 / 5</b></div>
+        </div>
+        <a class="download" href="raspberry-pi-camera-guide.zip" download>raspberry-pi-camera-guide.zip</a>
+      </div>
+    </div>
+
+    <div class="sheet-body">
+      <div>
+        <p class="panel-label">File tree</p>
+        <div class="tree">
+          <ul>
+            <li><button class="file" data-path="raspberry-pi-camera-guide/README.md"><span class="dot">●</span>README.md</button></li>
+            <li><button class="file" data-path="raspberry-pi-camera-guide/LICENSE"><span class="dot">●</span>LICENSE</button></li>
+            <li><button class="file" data-path="raspberry-pi-camera-guide/.gitignore"><span class="dot">●</span>.gitignore</button></li>
+            <li>
+              <details>
+                <summary>docs/</summary>
+                <ul>
+                  <li><button class="file" data-path="raspberry-pi-camera-guide/docs/camera-troubleshooting.md"><span class="dot">●</span>camera-troubleshooting.md</button></li>
+                </ul>
+              </details>
+            </li>
+            <li>
+              <details open>
+                <summary>examples/</summary>
+                <ul>
+                  <li><button class="file" data-path="raspberry-pi-camera-guide/examples/capture_photo.py"><span class="dot">●</span>capture_photo.py</button></li>
+                  <li><button class="file" data-path="raspberry-pi-camera-guide/examples/record_video.py"><span class="dot">●</span>record_video.py</button></li>
+                </ul>
+              </details>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div>
+        <p class="panel-label">Board differences that matter for the camera</p>
+        <table class="spec">
+          <thead><tr><th>Board</th><th>CPU</th><th>Camera connector</th></tr></thead>
+          <tbody>
+            <tr><td>Pi 3 B/B+</td><td>Cortex-A53, 1.4 GHz</td><td>1× 15-pin CSI (standard)</td></tr>
+            <tr><td>Pi 4 B</td><td>Cortex-A72, 1.5 GHz</td><td>1× 15-pin CSI (standard)</td></tr>
+            <tr><td>Pi 5</td><td>Cortex-A76, 2.4 GHz</td><td>2× smaller CSI/DSI, own cable</td></tr>
+          </tbody>
+        </table>
+        <p class="note">A Pi 3/4 camera ribbon will not fit a Pi 5 without an adapter — this trips up more beginners than the wiring itself.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= GREENHOUSE SYSTEM ================= -->
+  <section class="sheet" id="greenhouse">
+    <div class="sheet-head">
+      <div>
+        <div class="sheet-id">DATASHEET NO. RPI–GRN–03</div>
+        <h2 class="sheet-title">Greenhouse Monitoring System</h2>
+        <p class="sheet-tagline">Sensors, camera, storage, a live dashboard, and email/SMS alerts — with tuned thresholds for five different plants.</p>
+        <div class="badges">
+          <span class="badge">Intermediate</span>
+          <span class="badge">Flask dashboard</span>
+          <span class="badge">Email + SMS alerts</span>
+        </div>
+      </div>
+      <div>
+        <div class="stamp">
+          <div><span>Level</span><b>Intermediate</b></div>
+          <div><span>Files</span><b>22</b></div>
+          <div><span>Plants</span><b>5 profiles</b></div>
+        </div>
+        <a class="download" href="greenhouse-monitoring-system.zip" download>greenhouse-monitoring-system.zip</a>
+      </div>
+    </div>
+
+    <div class="sheet-body">
+      <div>
+        <p class="panel-label">File tree</p>
+        <div class="tree">
+          <ul>
+            <li><button class="file" data-path="greenhouse-monitoring-system/README.md"><span class="dot">●</span>README.md</button></li>
+            <li><button class="file" data-path="greenhouse-monitoring-system/PRECAUTIONS.md"><span class="dot">●</span>PRECAUTIONS.md</button></li>
+            <li><button class="file" data-path="greenhouse-monitoring-system/requirements.txt"><span class="dot">●</span>requirements.txt</button></li>
+            <li><button class="file" data-path="greenhouse-monitoring-system/LICENSE"><span class="dot">●</span>LICENSE</button></li>
+            <li>
+              <details>
+                <summary>config/</summary>
+                <ul>
+                  <li><button class="file" data-path="greenhouse-monitoring-system/config/settings_example.py"><span class="dot">●</span>settings_example.py</button></li>
+                </ul>
+              </details>
+            </li>
+            <li>
+              <details open>
+                <summary>core/</summary>
+                <ul>
+                  <li><button class="file" data-path="greenhouse-monitoring-system/core/sensors.py"><span class="dot">●</span>sensors.py</button></li>
+                  <li><button class="file" data-path="greenhouse-monitoring-system/core/camera_capture.py"><span class="dot">●</span>camera_capture.py</button></li>
+                  <li><button class="file" data-path="greenhouse-monitoring-system/core/alerts.py"><span class="dot">●</span>alerts.py</button></li>
+                  <li><button class="file" data-path="greenhouse-monitoring-system/core/data_logger.py"><span class="dot">●</span>data_logger.py</button></li>
+                  <li><button class="file" data-path="greenhouse-monitoring-system/core/engine.py"><span class="dot">●</span>engine.py</button></li>
+                  <li><button class="file" data-path="greenhouse-monitoring-system/core/dashboard.py"><span class="dot">●</span>dashboard.py</button></li>
+                </ul>
+              </details>
+            </li>
+            <li>
+              <details open>
+                <summary>plants/</summary>
+                <ul>
+                  <li><button class="file" data-path="greenhouse-monitoring-system/plants/mushroom_monitor.py"><span class="dot">●</span>mushroom_monitor.py</button></li>
+                  <li><button class="file" data-path="greenhouse-monitoring-system/plants/tomato_monitor.py"><span class="dot">●</span>tomato_monitor.py</button></li>
+                  <li><button class="file" data-path="greenhouse-monitoring-system/plants/citrus_monitor.py"><span class="dot">●</span>citrus_monitor.py</button></li>
+                  <li><button class="file" data-path="greenhouse-monitoring-system/plants/pepper_monitor.py"><span class="dot">●</span>pepper_monitor.py</button></li>
+                  <li><button class="file" data-path="greenhouse-monitoring-system/plants/mandevilla_monitor.py"><span class="dot">●</span>mandevilla_monitor.py</button></li>
+                </ul>
+              </details>
+            </li>
+            <li>
+              <details>
+                <summary>docs/</summary>
+                <ul>
+                  <li><button class="file" data-path="greenhouse-monitoring-system/docs/hardware-setup.md"><span class="dot">●</span>hardware-setup.md</button></li>
+                  <li><button class="file" data-path="greenhouse-monitoring-system/docs/plant-profiles.md"><span class="dot">●</span>plant-profiles.md</button></li>
+                  <li><button class="file" data-path="greenhouse-monitoring-system/docs/alerts-setup.md"><span class="dot">●</span>alerts-setup.md</button></li>
+                  <li><button class="file" data-path="greenhouse-monitoring-system/docs/troubleshooting.md"><span class="dot">●</span>troubleshooting.md</button></li>
+                </ul>
+              </details>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div>
+        <p class="panel-label">Ideal ranges by plant</p>
+        <table class="spec">
+          <thead><tr><th>Plant</th><th>Temp</th><th>Humidity</th><th>Moisture</th><th>Light</th></tr></thead>
+          <tbody>
+            <tr><td>Mushroom</td><td>15–21 C</td><td>85–95%</td><td>70–95%</td><td>200–1,000 lux</td></tr>
+            <tr><td>Tomato</td><td>15–27 C</td><td>60–70%</td><td>60–80%</td><td>10k–130k lux</td></tr>
+            <tr><td>Citrus</td><td>10–29 C</td><td>50–60%</td><td>35–65%</td><td>8k–130k lux</td></tr>
+            <tr><td>Pepper</td><td>15–27 C</td><td>50–70%</td><td>55–75%</td><td>10k–130k lux</td></tr>
+            <tr><td>Mandevilla</td><td>15–32 C</td><td>50–60%</td><td>45–70%</td><td>8k–130k lux</td></tr>
+          </tbody>
+        </table>
+        <p class="note">Every value is calibrated per sensor, not absolute — see docs/plant-profiles.md before trusting an alert at 3am.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>Built and documented for a hands-on learning workflow — wire it, break it, read the datasheet, fix it.</div>
+    <div>MIT licensed · <a href="raspberry-pi-beginner-guide.zip">beginner</a> · <a href="raspberry-pi-camera-guide.zip">camera</a> · <a href="greenhouse-monitoring-system.zip">greenhouse</a></div>
+  </footer>
+
+</div>
+
+<div class="toast" id="toast">Copied path</div>
+
+<script>
+  // Build the 40-pin GPIO rail: 20 columns x 2 rows, three pins highlighted
+  (function buildRail(){
+    const g = document.getElementById('rail-pins');
+    const cols = 20, rowY = [22, 52], startX = 34, gap = 38.5;
+    const hotIndexes = [1, 8, 14]; // illustrative highlighted pins
+    let html = '';
+    for(let c=0; c<cols; c++){
+      for(let r=0; r<2; r++){
+        const hot = (r===0 && hotIndexes.includes(c));
+        html += `<circle class="pin${hot ? ' hot' : ''}" cx="${startX + c*gap}" cy="${rowY[r]}" r="4.2"></circle>`;
+      }
+    }
+    g.innerHTML = html;
+  })();
+
+  // Click a filename to copy its path
+  const toast = document.getElementById('toast');
+  let toastTimer;
+  document.querySelectorAll('.file').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const path = btn.getAttribute('data-path');
+      if(navigator.clipboard){
+        navigator.clipboard.writeText(path).catch(function(){});
+      }
+      toast.textContent = 'Copied: ' + path.split('/').pop();
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 1600);
+    });
+  });
+</script>
+
+</body>
+</html>
