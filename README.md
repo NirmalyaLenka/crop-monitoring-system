@@ -110,4 +110,4 @@ See `PRECAUTIONS.md` for the full list, but in short:
 This project is licensed under the MIT License. See the `LICENSE` file for details.
 
 ## Please visit the link for ease to find the file and implementation. 
- link:
+ link: https://nirmalyalenka.github.io/crop-monitoring-system/
