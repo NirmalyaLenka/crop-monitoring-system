@@ -22,7 +22,6 @@ Run with (from the repository root folder):
     python3 plants/tomato_monitor.py
 Stop with Ctrl+C
 """
-
 import os
 import sys
 
