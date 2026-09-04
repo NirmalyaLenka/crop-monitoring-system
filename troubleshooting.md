@@ -62,4 +62,4 @@ DHT22 sensors fail an individual read fairly often, this is normal and expected.
 
 ## The Pi Restarted and Monitoring Stopped
 
-By default, the monitor scripts do not restart automatically after a reboot or power interruption. For unattended long-term use, consider setting up a `systemd` service or a `cron @reboot` entry to automatically start your chosen plant monitor script (and the dashboard) whenever the Pi boots up. This is an intermediate Linux topic; search "run python script on raspberry pi boot systemd" for a full walkthrough once you are comfortable with the basics in this repository.
+By default, the monitor scripts do not restart automatically after a reboot or power interruption. For unattended long-term use, consider setting up a `systemd` service or a `cron @reboot` entry to automatically start your chosen plant monitor script (and the dashboard) whenever the Pi boots up. This is an intermediate Linux topic; search "run python script on raspberry pi boot systemd" for a full walkthrough once you are comfortable with the basics in this repository,
