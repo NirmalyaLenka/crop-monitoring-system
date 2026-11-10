@@ -1,4 +1,4 @@
-flask
+Flask>=3.0.0
 adafruit-blinka
 adafruit-circuitpython-dht
 adafruit-circuitpython-mcp3xxx
