@@ -1,0 +1,1 @@
+"""Shared greenhouse monitoring components."""
