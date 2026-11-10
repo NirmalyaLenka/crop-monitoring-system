@@ -115,6 +115,45 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 
 ---
 
+## Skills & technologies
+
+`Python` · `HTML/CSS`
+
+
+## Repository structure
+
+Key files and folders (not exhaustive):
+
+- `LICENSE`
+- `PRECAUTIONS.md`
+- `README.md`
+- `__init__.py`
+- `alerts-setup.md`
+- `alerts.py`
+- `camera_capture.py`
+- `citrus_monitor.py`
+- `dashboard.py`
+- `data_logger.py`
+- `engine.py`
+- `hardware-setup.md`
+- `index.html`
+- `mandevilla_monitor.py`
+- `mushroom_monitor.py`
+- `pepper_monitor.py`
+- `plant-profiles.md`
+- `requirement.txt.txt`
+- `requirements.txt`
+- `sensors.py`
+- `settings_example.py`
+- `tomato_monitor.py`
+- `troubleshooting.md`
+
+
+## How it works
+
+Python source is present, including `__init__.py`. Review configuration and dependencies before running; use a virtual environment and follow the project's setup instructions.
+
+
 ## Maintenance & Audit
 
 - **Audit date:** 10 November 2026
