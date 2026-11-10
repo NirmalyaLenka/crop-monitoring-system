@@ -1,163 +1,161 @@
-# Greenhouse Monitoring System
+# Raspberry Pi Greenhouse Monitoring System
 
-A beginner-friendly, Raspberry Pi based greenhouse monitoring system with sensors, a camera, data storage, a live wireless dashboard, and email/SMS alerts. It ships with ready-to-run monitoring profiles for five different plants: mushroom, tomato, citrus, pepper, and Mandevilla.
+A modular Raspberry Pi monitoring prototype for greenhouse and indoor growing experiments. It reads environmental sensors, logs measurements, captures periodic photos, compares readings with plant-specific ranges, and can send email/SMS alerts. A local Flask dashboard displays the latest status over the LAN.
 
-No prior experience with Linux, electronics, or Python is required, though this is a bigger project than a single sensor script, so budget more time than a simple blink or single-sensor project.
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Raspberry Pi](https://img.shields.io/badge/Platform-Raspberry%20Pi-C51A4A?logo=raspberrypi&logoColor=white)](https://www.raspberrypi.com/)
+[![Flask](https://img.shields.io/badge/Dashboard-Flask-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![Status](https://img.shields.io/badge/Status-Prototype-orange)](./)
 
-Read `PRECAUTIONS.md` before building or running this system. It covers electrical safety, credential safety, and the real limitations of hobby sensors.
+## What it does
 
-## What This System Does
+- Reads temperature and humidity using a DHT22, light level via I²C, and analogue moisture/air-quality signals through an MCP3008 ADC.
+- Writes timestamped readings to CSV files and stores camera images.
+- Compares readings against configurable plant profiles for mushroom, tomato, citrus, pepper, and Mandevilla.
+- Sends email alerts and optional SMS alerts when readings leave the configured ranges, with a cooldown to limit repeated notifications.
+- Serves a local dashboard that displays recent readings, warnings, and photos.
 
-1. Reads temperature, humidity, light level, soil/substrate moisture, and air quality from a set of sensors, on a repeating schedule.
-2. Logs every reading to a CSV file you can open in any spreadsheet program.
-3. Takes a timestamped camera photo on a repeating schedule, and automatically deletes old photos after a configurable number of days.
-4. Compares every reading against ideal ranges for whichever plant you are monitoring, and sends you an email (and optionally an SMS text) if something is out of range, with a cooldown so you are not flooded with repeat alerts.
-5. Runs a small live dashboard web page, viewable from your phone or laptop over your home Wi-Fi, showing the current status and latest photo for every plant you are monitoring.
-
-## How the Project Is Organized
-
-```
-greenhouse-monitoring-system/
-├── config/
-│   └── settings_example.py   Copy to settings.py and fill in your own values
-├── core/
-│   ├── sensors.py            Reads the DHT22, BH1750, soil/substrate probe, and MQ135
-│   ├── camera_capture.py     Takes and stores timestamped photos
-│   ├── alerts.py             Sends email and optional SMS alerts, with cooldown
-│   ├── data_logger.py        Appends sensor readings to a CSV file
-│   ├── engine.py             The shared monitoring loop every plant script uses
-│   └── dashboard.py          The live web dashboard, run separately
-├── plants/
-│   ├── mushroom_monitor.py
-│   ├── tomato_monitor.py
-│   ├── citrus_monitor.py
-│   ├── pepper_monitor.py
-│   └── mandevilla_monitor.py
-└── docs/
-    ├── hardware-setup.md     Full wiring and calibration instructions
-    ├── plant-profiles.md     Research notes, values, and precautions per plant
-    ├── alerts-setup.md       Gmail app password and Twilio SMS setup
-    └── troubleshooting.md    Fixes for common problems
-```
-
-Every plant script in `plants/` is short on purpose: it only defines that plant's ideal ranges and a couple of notes, then hands off to the shared logic in `core/engine.py`. This means all five plant scripts behave identically in terms of logging, photos, alerts, and the dashboard; only the thresholds differ.
-
-## Quick Start
-
-1. Set up your Pi, wire the sensors and camera, and enable I2C and SPI following `docs/hardware-setup.md` in full.
-2. Install the required software:
-
-```
-sudo apt update
-sudo apt install -y python3-picamera2 i2c-tools libgpiod2
-pip3 install -r requirements.txt --break-system-packages
-```
-
-3. Copy the settings template and fill in your details:
-
-```
-cp config/settings_example.py config/settings.py
-```
-
-Follow `docs/alerts-setup.md` to fill in your email (and optional SMS) details in `config/settings.py`.
-
-4. Calibrate your soil/substrate moisture sensor and your air quality baseline, following the steps in `docs/hardware-setup.md`.
-5. Run the monitor script for whichever plant you are growing, from the repository's root folder:
-
-```
-python3 plants/tomato_monitor.py
-```
-
-6. In a separate terminal, run the live dashboard:
-
-```
-python3 core/dashboard.py
-```
-
-7. From your phone or laptop, on the same Wi-Fi network, open a browser to `http://<your-pi-ip-address>:5000`. Find your Pi's IP address by running `hostname -I` on the Pi itself.
-
-## Ideal Ranges at a Glance
-
-These are simplified single day/night bands for quick reference. Full reasoning, sources, and precautions for each plant are in `docs/plant-profiles.md`, which you should read before relying on any of these values.
-
-| Plant | Temperature | Humidity | Soil/substrate moisture | Light |
-|---|---|---|---|---|
-| Mushroom | 15 to 21 C | 85 to 95% | 70 to 95% | 200 to 1000 lux |
-| Tomato | 15 to 27 C | 60 to 70% | 60 to 80% | 10,000 to 130,000 lux |
-| Citrus | 10 to 29 C | 50 to 60% | 35 to 65% | 8,000 to 130,000 lux |
-| Pepper | 15 to 27 C | 50 to 70% | 55 to 75% | 10,000 to 130,000 lux |
-| Mandevilla | 15 to 32 C | 50 to 60% | 45 to 70% | 8,000 to 130,000 lux |
-
-Air quality is not included in this table since the MQ135 needs to be calibrated to your own environment's fresh-air baseline rather than compared against a fixed universal number; see `docs/hardware-setup.md`.
-
-## Monitoring More Than One Plant at Once
-
-You can run more than one plant monitor script at the same time (for example, in separate terminal sessions, or using `screen`/`tmux`), as long as each one is monitoring a genuinely separate set of sensors and its own camera setup. The shared dashboard will automatically show every plant currently being monitored, since each plant script writes its own separate status file.
-
-Running two scripts that try to use the exact same physical sensor or camera at the same time will cause conflicts; this project assumes one full sensor and camera set per plant being actively monitored.
-
-## Precautions
-
-See `PRECAUTIONS.md` for the full list, but in short:
-
-- Keep electronics away from water spray and high humidity, use a sealed enclosure where needed.
-- Never commit `config/settings.py` (it holds your real credentials); only `config/settings_example.py` should be committed.
-- Treat every sensor reading as a helpful estimate from a low-cost hobby sensor, not a certified, laboratory-accurate measurement.
-- This system is for hobby, educational, and small personal greenhouse use, not a substitute for a certified agricultural monitoring system or for your own regular in-person checks on your plants.
-
-## License
-
-This project is licensed under the MIT License. See the `LICENSE` file for details.
-
-## Please visit the link for ease to find the file and implementation. 
- link:https://nirmalyalenka.github.io/crop-monitoring-system/
-
-
----
-
-## Skills & technologies
-
-`Python` · `HTML/CSS`
-
-
-## Repository structure
-
-Key files and folders (not exhaustive):
-
-- `LICENSE`
-- `PRECAUTIONS.md`
-- `README.md`
-- `__init__.py`
-- `alerts-setup.md`
-- `alerts.py`
-- `camera_capture.py`
-- `citrus_monitor.py`
-- `dashboard.py`
-- `data_logger.py`
-- `engine.py`
-- `hardware-setup.md`
-- `index.html`
-- `mandevilla_monitor.py`
-- `mushroom_monitor.py`
-- `pepper_monitor.py`
-- `plant-profiles.md`
-- `requirement.txt.txt`
-- `requirements.txt`
-- `sensors.py`
-- `settings_example.py`
-- `tomato_monitor.py`
-- `troubleshooting.md`
-
+This is a **monitoring and alerting prototype**, not an automatic climate-control system. Hobby sensors require calibration and can produce misleading values. Do not use it as the sole safety or crop-management system.
 
 ## How it works
 
-Python source is present, including `__init__.py`. Review configuration and dependencies before running; use a virtual environment and follow the project's setup instructions.
+1. A plant profile in `plants/` defines the target ranges and calls the shared monitoring engine.
+2. `core/sensors.py` reads the connected sensors; unavailable readings are represented as missing values rather than treated as valid measurements.
+3. `core/engine.py` checks ranges, writes CSV data, manages periodic photo capture, and triggers alerts.
+4. `core/dashboard.py` reads the shared status files and serves a local web dashboard.
+5. `config/settings.py` contains local runtime settings and notification credentials. Create it from the example file; never commit real credentials.
 
+## Hardware
 
-## Maintenance & Audit
+The current sensor implementation and comments describe this typical setup:
 
-- **Audit date:** 10 November 2026
-- **Documentation status:** README reviewed and audit record added on this date.
-- **Scope and evidence:** This is a documentation-level maintenance pass. It does not establish that source code compiles, dependencies are current, security has been tested, or hardware/runtime behavior has been verified.
-- **Code and tests:** No new functional code changes or test results are claimed by this README update. Run project-specific build, test, and hardware/runtime checks before relying on the project.
-- **Maintenance baseline:** Documentation status recorded through 10 November 2026; revisit setup instructions, dependencies, safety limits, known limitations, and tests when the project changes.
+| Component | Purpose | Notes |
+|---|---|---|
+| Raspberry Pi 3/4/5 | Main controller | Enable I²C and SPI using `sudo raspi-config`. |
+| DHT22 | Air temperature and relative humidity | Confirm the GPIO pin and pull-up arrangement in `core/sensors.py`. |
+| BH1750 / I²C light sensor | Light-level measurement | Confirm address and wiring in `docs/hardware-setup.md`. |
+| MCP3008 ADC | Converts analogue sensor outputs | Used because Raspberry Pi GPIO has no built-in analogue input. |
+| Capacitive moisture probe | Soil/substrate moisture estimate | Calibrate for the actual soil or growing substrate. |
+| MQ135 module | Rough air-quality trend | Not a calibrated safety gas detector. |
+| Pi camera + Picamera2 | Periodic photos | Install the system package appropriate for the Raspberry Pi OS version. |
+
+Read [hardware setup](docs/hardware-setup.md) and [precautions](PRECAUTIONS.md) before connecting hardware. Check each sensor's supply voltage and pinout; do not assume every breakout is 3.3 V tolerant.
+
+## Setup
+
+These instructions target Raspberry Pi OS. Camera support and GPIO libraries depend on the OS release and board.
+
+### 1. Install system packages
+
+```bash
+sudo apt update
+sudo apt install -y python3-venv python3-picamera2 libgpiod2
+```
+
+Enable I²C and SPI with `sudo raspi-config`, then reboot if requested.
+
+### 2. Create a virtual environment
+
+The `--system-site-packages` option allows the virtual environment to use the system-installed Picamera2 package.
+
+```bash
+python3 -m venv --system-site-packages .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+### 3. Add local settings
+
+```bash
+cp config/settings_example.py config/settings.py
+```
+
+Edit `config/settings.py` for your local data paths and notification settings. Keep real email app passwords and Twilio credentials out of Git.
+
+### 4. Start one plant monitor
+
+Run commands from the repository root. For example:
+
+```bash
+python plants/tomato_monitor.py
+```
+
+Other profiles are in `plants/`. Check each profile's comments and the research notes before using its ranges for real cultivation.
+
+### 5. Start the dashboard
+
+In a second terminal, activate the same virtual environment and run:
+
+```bash
+source .venv/bin/activate
+python core/dashboard.py
+```
+
+Open `http://<raspberry-pi-ip>:5000` from a device on the same network. Find the Pi address with `hostname -I`.
+
+## Repository structure
+
+```text
+.
+├── config/
+│   ├── __init__.py
+│   └── settings_example.py       # Safe template; copy to ignored settings.py
+├── core/
+│   ├── __init__.py
+│   ├── alerts.py                 # Email and optional SMS notifications
+│   ├── camera_capture.py         # Picamera2 capture and photo retention
+│   ├── dashboard.py              # Flask LAN dashboard
+│   ├── data_logger.py            # CSV logging
+│   ├── engine.py                 # Shared monitoring loop and thresholds
+│   └── sensors.py                # DHT22, ADC and sensor access
+├── plants/
+│   ├── __init__.py
+│   ├── citrus_monitor.py
+│   ├── mandevilla_monitor.py
+│   ├── mushroom_monitor.py
+│   ├── pepper_monitor.py
+│   └── tomato_monitor.py
+├── docs/
+│   ├── alerts-setup.md
+│   ├── hardware-setup.md
+│   ├── plant-profiles.md
+│   ├── project_log_mockup.html   # Static reference page; not the live Flask dashboard
+│   └── troubleshooting.md
+├── data/                         # Generated readings/status; ignored by Git
+├── photos/                       # Generated images; ignored by Git
+├── PRECAUTIONS.md
+├── requirements.txt
+└── README.md
+```
+
+## Documentation
+
+- [Hardware wiring and setup](docs/hardware-setup.md)
+- [Plant profile notes and sources](docs/plant-profiles.md)
+- [Email/SMS setup](docs/alerts-setup.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [Safety and limitations](PRECAUTIONS.md)
+
+## Skills demonstrated
+
+- Raspberry Pi and Linux setup
+- Python modules and package structure
+- Sensor integration, I²C, SPI and ADC interfaces
+- Flask dashboards and LAN access
+- CSV logging, threshold checks, and notification workflows
+- Hardware calibration and troubleshooting
+
+## Known limitations
+
+- The project has not been hardware-validated as part of this documentation/layout cleanup.
+- Sensor readings need calibration; plant target ranges are simplified guidance, not a guarantee of healthy growth.
+- Email and SMS require correct local credentials and network access.
+- Picamera2/GPIO setup varies by Raspberry Pi OS version.
+- The dashboard is intended for a trusted local network. Do not expose it directly to the public internet.
+
+## Maintenance & validation
+
+- **Documentation/layout review:** 10 November 2026.
+- **Changes:** Files were placed into the `core/`, `plants/`, `config/`, and `docs/` packages that the code and setup instructions already expected.
+- **Validation status:** Imports and hardware execution have not been run on a Raspberry Pi in this session. Follow the setup steps and verify each sensor before relying on the system.
