@@ -156,6 +156,6 @@ Open `http://<raspberry-pi-ip>:5000` from a device on the same network. Find the
 
 ## Maintenance & validation
 
-- **Documentation/layout review:** 10 November 2026.
+- **Documentation/layout review:** 11 November 2026.
 - **Changes:** Files were placed into the `core/`, `plants/`, `config/`, and `docs/` packages that the code and setup instructions already expected.
 - **Validation status:** Imports and hardware execution have not been run on a Raspberry Pi in this session. Follow the setup steps and verify each sensor before relying on the system.
