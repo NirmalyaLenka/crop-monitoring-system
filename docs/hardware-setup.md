@@ -88,10 +88,12 @@ AOUT -> MCP3008 channel 0
 ```
 VCC -> 5V
 GND -> GND
-AOUT -> MCP3008 channel 1
+AOUT -> MCP3008 channel 1, only through suitable input-voltage conditioning when required
 ```
 
-MQ135 modules need a warm-up period of several minutes after power-on before readings settle. Do not trust readings taken in the first few minutes after powering on.
+**Important ADC voltage limit:** the MCP3008 in this guide has VDD and VREF connected to 3.3 V, so its analog input must remain within the permitted range (not above VREF). An MQ135 breakout powered at 5 V may output more than 3.3 V on AOUT. Before connecting AOUT, check the exact module's maximum output voltage. If it can exceed 3.3 V, add a correctly calculated voltage divider or suitable level-conditioning circuit; do not connect a possible 5 V signal directly to the MCP3008. Re-check the divider under the expected supply and sensor conditions.
+
+MQ135 modules need a warm-up period of several minutes after power-on before readings settle. Do not trust readings taken in the first few minutes after powering on. The sensor's raw output is not a calibrated ppm/CO2 measurement.
 
 ### Camera
 
