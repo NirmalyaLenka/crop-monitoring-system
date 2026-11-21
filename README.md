@@ -41,6 +41,20 @@ The current sensor implementation and comments describe this typical setup:
 
 Read [hardware setup](docs/hardware-setup.md) and [precautions](PRECAUTIONS.md) before connecting hardware. Check each sensor's supply voltage and pinout; do not assume every breakout is 3.3 V tolerant.
 
+### Confirmed signal mapping in the current code
+
+The following mapping is taken from `core/sensors.py` and `docs/hardware-setup.md`; check the board/module revision before wiring.
+
+| Device/signal | Current mapping |
+|---|---|
+| DHT22 data | BCM GPIO4 (`board.D4`) |
+| BH1750 I²C | SDA → BCM GPIO2; SCL → BCM GPIO3; address `0x23` |
+| MCP3008 analog inputs | CH0 → moisture probe; CH1 → MQ135 output |
+| MCP3008 SPI | CLK → GPIO11; DOUT → GPIO9; DIN → GPIO10; CS → GPIO8 / CE0 |
+| MCP3008 supply/reference | VDD and VREF → 3.3 V; AGND and DGND → GND |
+
+**Analog-input voltage warning:** the MCP3008 in this setup uses a 3.3 V reference. An MQ135 module powered from 5 V may produce an analog output above 3.3 V. Do not connect its AOUT directly until the maximum voltage is verified and limited to the ADC's permitted input range. See [hardware setup](docs/hardware-setup.md) for the wiring precaution.
+
 ## Setup
 
 These instructions target Raspberry Pi OS. Camera support and GPIO libraries depend on the OS release and board.
