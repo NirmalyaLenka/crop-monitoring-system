@@ -173,3 +173,9 @@ Open `http://<raspberry-pi-ip>:5000` from a device on the same network. Find the
 - **Documentation/layout review:** 21 November 2026.
 - **Changes:** Files were placed into the `core/`, `plants/`, `config/`, and `docs/` packages that the code and setup instructions already expected.
 - **Validation status:** Imports and hardware execution have not been run on a Raspberry Pi in this session. Follow the setup steps and verify each sensor before relying on the system.
+
+## Contact
+
+Maintained up to 25 November 2026.
+
+If you encounter any problems, please contact [carmodbhai@gmail.com](mailto:carmodbhai@gmail.com).
